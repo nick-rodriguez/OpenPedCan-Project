@@ -74,7 +74,9 @@ prepareOutput <- function(fuseDF, bioid) {
 ### Read in data
 
 ```{r}
-dataDir <- file.path("..", "..", "data")
+#dataDir <- file.path("..", "..", "data")
+# download-testing-files.sh added testing dir in data/
+dataDir <- file.path("..", "..", "data", "testing") 
 fusDir <- file.path("..", "..", "analyses", "fusion_filtering", "results")
 annotDir <- file.path("..", "..", "analyses", "fusion_filtering", "references")
 #' Annotation file to be used for identifying kinase genes
@@ -144,7 +146,8 @@ ependGenes <- c(
 embryFuses <- c(
   "CIC--NUTM1",
   "MN1--BEND2",
-  "MN1--CXXC5"
+  "MN1--CXXC5",
+  "EWSR1--PLAGL1"
 )
 embryGenes <- c(
   "FOXR2",
