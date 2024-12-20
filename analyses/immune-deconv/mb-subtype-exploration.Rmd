@@ -1,0 +1,100 @@
+---
+title: "mb-subtype-exploration"
+author: "Nicholas Rodriguez"
+date: "2024-12-15"
+output:
+  html_document: default
+  pdf_document: default
+editor_options:
+  chunk_output_type: inline
+---
+
+## Set up
+
+### Libraries and functions
+
+```{r}
+library(tidyverse)
+library(readr)
+library(ggstatsplot) 
+source("util/heatmap_by_subtype.R")
+```
+
+### Read in immune deconv output
+```{r}
+resultsDir <- "results"
+# Read in quantiseq output
+qsData <- read_rds(file.path(resultsDir, "quantiseq_output.rds"))
+xcellData <- read_rds(file.path(resultsDir, "xcell_output.rds"))
+```
+
+### Dataset
+
+#### Sample size
+```{r}
+# Include only medulloblastoma cancer group
+xcellData <- xcellData %>% filter(cancer_group=="Medulloblastoma")
+qsData <- qsData %>% filter(cancer_group=="Medulloblastoma")
+qsData %>% select(Kids_First_Biospecimen_ID) %>% unique() %>% count() 
+```
+
+#### Subtype counts of medulloblastoma (MB)
+
+```{r}
+qsData %>% count(molecular_subtype)
+```
+
+
+#### Cell types identified by quantiseq
+
+```{r}
+qsData %>% select(cell_type) %>% unique()
+```
+#### Cell types identified by xCell 
+```{r}
+xcellData %>% select(cell_type) %>% unique()
+```
+
+### Boxplot of quantiseq fractions
+```{r, fig.height=8}
+qsDataFilteredNoUCCell <- qsData %>% filter(cell_type != "uncharacterized cell")
+qsDataFilteredNoUCCell %>% ggplot(aes(x = cell_type, y = fraction)) + 
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), ) + 
+  scale_y_continuous(limits = c(0, 1))
+```
+
+### Quantiseq Heatmap 
+```{r}
+heatmap_by_subtype(qsDataFilteredNoUCCell, annot_colors = NA, output_file = NA)
+```
+### xCell Heatmap
+
+```{r, fig.width=10}
+xcellFilteredNoUCCell <- xcellData %>% filter(cell_type != "uncharacterized cell")
+heatmap_by_subtype(xcellFilteredNoUCCell, annot_colors = NA, output_file = NA)
+```
+
+### Anova 
+```{r}
+summary(aov(fraction ~ molecular_subtype,
+  data = qsDataFilteredNoUCCell,
+))
+```
+
+
+```{r, fig.height=6}
+
+ggbetweenstats(
+  data = xcellFilteredNoUCCell,
+  x = molecular_subtype,
+  y = fraction,
+  type = "parametric", # for ANOVA
+  plot.type = "violin",
+  pairwise.comparisons = TRUE,
+  pairwise.display = "significant",
+  centrality.plotting = TRUE,
+  bf.message = TRUE
+)
+```
+
